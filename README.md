@@ -1,2 +1,2 @@
-# DraLang
-A simple complier for C like language(DraLang) in golang
+# soaplang
+A simple complier for C like language(soaplang) in golang
