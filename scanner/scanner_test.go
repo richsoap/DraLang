@@ -3,29 +3,31 @@ package scanner
 import (
 	"testing"
 
-	"github.com/richsoap/soaplang/errors"
 	"github.com/richsoap/soaplang/util"
 )
 
+func checkReadLine(t *testing.T, s *Scanner, tar []byte) {
+	if res, err := s.ReadLine(); err != nil {
+		t.Error("Read Error")
+	} else if !util.ByteSliceEqual(res, tar) {
+		t.Error("Val Error: tar: ", tar, " get: ", res)
+	}
+}
+
+func checkLineNum(t *testing.T, s *Scanner, tar int) {
+	if s.LineNum() != tar {
+		t.Error("LineNum Error: tar ", tar, " get: ", s.LineNum())
+	}
+}
+
 func TestScanner(t *testing.T) {
 	s := NewScanner("../material/scanner_test.txt")
-	defer s.Close()
 	if err := s.Open(); err != nil {
 		t.Error("Init Error")
 	}
-	res := make([]byte, 0)
-	tar := []byte{'A', 'B', 'C'}
-	for {
-		val, err := s.Read()
-		if err == errors.ERR_EOF {
-			break
-		} else if err != nil {
-			t.Error("Read Error")
-		} else {
-			res = append(res, val)
-		}
-	}
-	if !util.ByteSliceEqual(res, tar) {
-		t.Error("Val Error")
-	}
+	defer s.Close()
+	checkReadLine(t, s, []byte{'A', 'B', 'C'})
+	checkReadLine(t, s, []byte{'D', 'E', 'F'})
+	checkReadLine(t, s, nil)
+	checkLineNum(t, s, 2)
 }

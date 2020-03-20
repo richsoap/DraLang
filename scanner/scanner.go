@@ -4,18 +4,18 @@ import (
 	"bufio"
 	"io"
 	"os"
-
-	"github.com/richsoap/soaplang/errors"
 )
 
 type Scanner struct {
 	filePath string
 	file     *os.File
 	reader   *bufio.Reader
+	lineNum  int
+	eof      bool
 }
 
 func NewScanner(path string) *Scanner {
-	return &Scanner{path, nil, nil}
+	return &Scanner{path, nil, nil, 0, true}
 }
 
 func (s *Scanner) Open() error {
@@ -25,15 +25,33 @@ func (s *Scanner) Open() error {
 		s.file = f
 	}
 	s.reader = bufio.NewReader(s.file)
+	s.lineNum = 0
+	s.eof = false
 	return nil
 }
 
-func (s *Scanner) Read() (byte, error) {
-	if val, err := s.reader.ReadByte(); err == io.EOF {
-		return 0, errors.ERR_EOF
-	} else if err != nil {
-		return 0, err
+// Make sure return return for user's calling is a complete line
+func (s *Scanner) ReadLine() ([]byte, error) {
+	if s.eof {
+		return nil, nil
+	}
+	if val, isPrefix, err := s.reader.ReadLine(); err != nil {
+		if err == io.EOF {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	} else if isPrefix {
+		tail, tailerr := s.ReadLine()
+		if tailerr != nil {
+			return nil, err
+		} else if tail == nil {
+			return val, nil
+		}
+		val = append(val, tail...)
+		return val, nil
 	} else {
+		s.lineNum++
 		return val, nil
 	}
 }
@@ -43,4 +61,8 @@ func (s *Scanner) Close() {
 		s.file.Close()
 	}
 	s.file = nil
+}
+
+func (s *Scanner) LineNum() int {
+	return s.lineNum
 }
