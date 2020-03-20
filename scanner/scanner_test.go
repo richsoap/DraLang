@@ -1,7 +1,9 @@
 package scanner
 
-import(
+import (
 	"testing"
+
+	"github.com/richsoap/soaplang/errors"
 	"github.com/richsoap/soaplang/util"
 )
 
@@ -15,8 +17,10 @@ func TestScanner(t *testing.T) {
 	tar := []byte{'A', 'B', 'C'}
 	for {
 		val, err := s.Read()
-		if err != nil {
+		if err == errors.ERR_EOF {
 			break
+		} else if err != nil {
+			t.Error("Read Error")
 		} else {
 			res = append(res, val)
 		}
